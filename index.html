@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Case classes ate my RAM</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/beige.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>case classes</h1>
+					<h2>ate my RAM</h2>
+					<p><small>Grebennikov Roman / <a href="http://findify.io">findify.io</a> / <a href="http://twitter.com/public_void_grv">@public_void_grv</a></small></p>
+				</section>
+				<section>
+          <h2>About me</h2>
+					<img src="images/grebennikov.jpg" height="250px"/>
+					<p>
+						<img class="plain" height="60px" src="images/sociohub.png"/>
+						<img class="plain" height="60px" src="images/findify.png"/>
+					</p>
+					<p>
+						<small>twitter: <a href="http://twitter.com/public_void_grv">@public_void_grv</a></small>
+						<small>email: <a href="mailto:grv@dfdx.me">grv@dfdx.me</a></small>
+					</p>
+				</section>
+				<section>
+					<h2>Product recommendations</h2>
+					<ul>
+						<li>Large-scale, online</li>
+						<li class="fragment highlight-red">Keep hot dataset in RAM</li>
+					</ul>
+				</section>
+				<section>
+					<h2>thousand users</h2>
+					<img src="images/horse.jpg" height="500px"/>
+				</section>
+				<section>
+					<h2>million users</h2>
+					<img src="images/overload.jpg" height="500px"/>
+				</section>
+				<section>
+					<h2>Recipe for disaster</h2>
+					<p>Large JVM heaps:</p>
+					<ul>
+						<li>Cause GC hiccups: latency spikes</li>
+						<li>Operationally more costly</li>
+					</ul>
+				</section>
+				<section>
+					<!-- when you know scala, everything is looking like case class -->
+					<h2>Where is my RAM?</h2>
+					<p>Let's model everything with case classes!</p> <!-- who are we meme -->
+					<pre><code>
+case class Pageview(productId: String, time: Long)
+					</code></pre>
+				</section>
+				<section>
+					<h2>Quiz</h2>
+					<pre><code>
+case class Pageview(productId: String, time: Long)
+
+Pageview(productId = "p123", time = 0L)
+					</code></pre>
+					<p>How much heap does Pageview use?</p>
+					<ul>
+						<li>~24 bytes</li>
+						<li>~48 bytes</li>
+						<li>~64 bytes <span class="fragment">&lt;-- correct!</span></li>
+						<li>~96 bytes</li>
+					</ol>
+					<!-- case class prep via javap -->
+					<!-- Pageview(productId: String, time: DateTime) as a class with fancy methods -->
+					<!-- jol: what is the actual field layout in memory? -->
+				</section>
+				<section>
+					<h2>dissecting case class</h2>
+					<small>jol: live!</small>
+				</section>
+				<section>
+					<h2>Case class memory footprint</h2>
+					<!--pre><code>
+new Pageview(productId = "p123", time = 150000000L)
+					</code></pre-->
+					<table>
+						<tr><td>Object header</td><td>12</td></tr>
+						<tr><td>String reference</td><td>4</td></tr>
+						<tr><td>String object header</td><td>12</td></tr>
+						<tr><td>String array reference</td><td>4</td></tr>
+						<tr><td>String array header</td><td>12</td></tr>
+						<tr><td>String char array size</td><td>4</td></tr>
+						<tr><td>Char array</td><td>4 or 8</td></tr>
+						<tr><td>millis</td><td>8</td></tr>
+					</table>
+					<p></p>
+				</section>
+				<section>
+					<h2>Pageview memory layout</h2>
+					todo: draw diagram
+				</section>
+				<section>
+					<h2>Wait, 70% overhead?</h2>
+					<p class="fragment">20 bytes of data / 64 bytes of RAM</p>
+					<img src="images/sad_kitten.jpg" class="fragment" height="300px"/>
+				</section>
+				<section>
+					<h2>Collections of case classes</h2>
+					<pre><code>case class ::[B](val head: B, var tl: List[B]) extends List[B] {
+  override def tail : List[B] = tl
+  override def isEmpty: Boolean = false
+} </code></pre>
+				<ul>
+					<li>reference to head</li>
+					<li>reference to next node</li>
+				</ul>
+				</section>
+				<section>
+					<h2>million pageviews</h2>
+					<pre><code>
+val pageviews = List.fill(1000)(_ =>
+  Pageview(
+    productId = Random.nextString(4),
+    time = Random.nextLong()
+  )
+)
+					</code></pre>
+					<p>jamm: track real memory usage on HotSpot</p>
+				</section>
+				<section>
+					<h2>million pageviews</h2>
+					<img src="images/million_pageviews.png" class="fragment"/>
+				</section>
+				<section>
+					<h2>collection of primitives</h2>
+					<img src="images/million_ints.png" class="fragment"/>
+				</section>
+				<section>
+					<h2>Welcome to the JVM world</h2>
+					<img src="images/fire.gif"/>
+				</section>
+				<section>
+					<h2>Going native</h2>
+					<pre><code>
+class Pageview {
+  std::string id;
+  int64_t ts;
+};
+
+int main() {
+  std::cout << sizeof(Pageview);
+}</code></pre>
+				</section>
+				<section>
+					<h2>Native memory layout</h2>
+					todo: draw diagram
+				</section>
+				<section>
+					<h2>Managed vs native</h2>
+					<p>todo: two doagrams side-by-side</p>
+				</section>
+				<section>
+					<h2>Perks of native memory layout</h2>
+					<ul>
+						<li>Almost no RAM overhead</li>
+						<li>Better CPU cache usage</li>
+					</ul>
+					<p>Can it be achieved within JVM?</p>
+				</section>
+				<section>
+					<h2>Yes, but</h2>
+					<ul>
+						<li>ChronicleMap<span class="fragment">: complex API, ton of boilerplate</span></li>
+						<li>MapDB<span class="fragment">: map only, persistent</span></li>
+						<li>scala-offheap<span class="fragment">: dead</span></li>
+					</ul>
+					<img src="images/sad_boy.jpg" height="300px" class="plain fragment"/>
+				</section>
+				<section>
+					<h2>What if</h2>
+					<ul>
+						<li>API: like scala collections</li>
+						<li>No boilerplate</li>
+						<li>Acceptable overhead</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Scala-packed</h2>
+					<img src="images/scala-packed.png" height="500px"/>
+				</section>
+				<section>
+					<h2>Scala-packed</h2>
+					<p>demo: packing pageviews</p>
+				</section>
+				<section>
+					<h2>How it works: memory layout</h2>
+					<ul>
+						<li>basic type encoders/decoders</li>
+						<li>shapeless magic for case classes</li>
+					</ul>
+					<p>todo: diagram of Pageview layout with scala-packed</p>
+				</section>
+				<section>
+					<h2>How it works: lists</h2>
+					<ul>
+						<li>Allocate a block of Array[Byte]</li>
+						<li>Dump serialized Pageview data</li>
+						<li>Expand as needed</li>
+					</ul>
+					<p>todo: diagram of list layout with scala-packed</p>
+				</section>
+				<section>
+					<h2>Maps</h2>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				history: true,
+				controls: true,
+				progress: true,
+				transition: 'none',
+				slideNumber: true,
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
