@@ -20,6 +20,17 @@
 			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
+		<style>
+		.reveal pre {
+			width: 100%,
+			padding: 40px;
+			font-size: 27px;
+			line-height: 30px;
+		}
+		.reveal pre code {
+			padding-left: 20px;
+		}
+		</style>
 	</head>
 	<body>
 		<div class="reveal">
@@ -190,7 +201,7 @@ int main() {
 						<li>MapDB<span class="fragment">: map only, persistent</span></li>
 						<li>scala-offheap<span class="fragment">: dead</span></li>
 					</ul>
-					<img src="images/sad_boy.jpg" height="300px" class="plain fragment"/>
+					<p><img src="images/sad_boy.jpg" height="300px" class="plain fragment"/></p>
 				</section>
 				<section>
 					<h2>What if</h2>
@@ -209,7 +220,7 @@ int main() {
 					<p>demo: packing pageviews</p>
 				</section>
 				<section>
-					<h2>How it works: memory layout</h2>
+					<h2>How it works</h2>
 					<ul>
 						<li>basic type encoders/decoders</li>
 						<li>shapeless magic for case classes</li>
@@ -217,17 +228,96 @@ int main() {
 					<p>todo: diagram of Pageview layout with scala-packed</p>
 				</section>
 				<section>
+					<h2>How it works: case classes</h2>
+					<ul>
+						<li>case class Pageview(id: String, ts: Long)</li>
+						<li>String :: Long :: HNil</li>
+						<li>Iterate over HList</li>
+						<li>Typeclasses!</li>
+					</ul>
+				</section>
+				<section>
 					<h2>How it works: lists</h2>
 					<ul>
 						<li>Allocate a block of Array[Byte]</li>
 						<li>Dump serialized Pageview data</li>
-						<li>Expand as needed</li>
+						<li>Expand buffer as needed</li>
+						<li>Works well* with primitives</li>
 					</ul>
 					<p>todo: diagram of list layout with scala-packed</p>
 				</section>
 				<section>
 					<h2>Maps</h2>
+					<p>todo: diagram of map layout with scala-packed</p>
 				</section>
+				<section>
+					<h2>Packed* limitations</h2>
+					<ul>
+						<li>Immutable: in-place element update is hard</li>
+						<li>List/Map semantics is different</li>
+						<li>Not all scala.collection.* methods are optimized</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Benchmark: Maps/RAM</h2>
+				</section>
+				<section>
+					<h2>Benchmark: Maps/CPU</h2>
+					<pre><code>
+Benchmark            mapType  Mode  Cnt       Score      Error  Units
+build1000                Map  avgt  100  174976.058 ± 4784.830  ns/op
+build1000          PackedMap  avgt  100  324695.548 ± 3652.811  ns/op
+lookupExisting           Map  avgt  100      48.297 ±    0.267  ns/op
+lookupExisting     PackedMap  avgt  100     128.332 ±    1.251  ns/op
+lookupNonExisting        Map  avgt  100      40.084 ±    0.808  ns/op
+lookupNonExisting  PackedMap  avgt  100      25.322 ±    0.751  ns/op
+					</code></pre>
+				</section>
+				<section>
+					<h2>Benchmark: List/RAM</h2>
+				</section>
+				<section>
+					<h2>Benchmark: List/CPU</h2>
+					<pre><code>
+Benchmark  listType  Mode  Cnt      Score     Error  Units
+filter       Vector  avgt  100  11291.284 ± 117.354  ns/op
+filter         List  avgt  100   6801.318 ±  31.750  ns/op
+filter   PackedList  avgt  100  14877.129 ± 470.324  ns/op
+foreach      Vector  avgt  100   3462.084 ±  79.947  ns/op
+foreach        List  avgt  100   3061.652 ±  30.891  ns/op
+foreach  PackedList  avgt  100   9579.002 ±  80.827  ns/op
+					</code></pre>
+				</section>
+				<section>
+					<h2>scala-packed and Findify</h2>
+					<ul>
+						<li>Using in production: not yet</li>
+						<li>Bugs: kek</li>
+						<li>Shapeless = <img src="images/heart.png" class="plain" style="margin: -10px 0px;" height="50px"/></li>
+					</ul>
+				</section>
+				<section>
+					<h2>Links</h2>
+					<ul>
+						<li>scala-packed</li>
+						<li>jol</li>
+						<li>jamm</li>
+						<li>slides</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Questions?</h2>
+					<table>
+						<tr><td>Insults</td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td></tr>
+						<tr><td>Holy war</td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td></tr>
+						<tr><td>Algorithms</td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td></tr>
+						<tr><td>Cargo cult</td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td></tr>
+						<tr><td>Emotional burn-out</td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td></tr>
+						<tr><td>Haskell</td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td></tr>
+						<tr><td colspan=6 style="text-align: right;"><small style="font-size: 16px;">a slide by @nikitonsky</small></td></tr>
+					</table>
+				</section>
+
 			</div>
 		</div>
 
@@ -242,6 +332,7 @@ int main() {
 				history: true,
 				controls: true,
 				progress: true,
+				width: 1200,
 				transition: 'none',
 				slideNumber: true,
 				dependencies: [
