@@ -91,7 +91,7 @@ case class Pageview(productId: String, time: Long)
 Pageview(productId = "p123", time = 0L)
 					</code></pre>
 					<p>How much heap does Pageview use?</p>
-					<ul>
+					<ul class="fragment">
 						<li>~24 bytes</li>
 						<li>~48 bytes</li>
 						<li>~64 bytes <span class="fragment">&lt;-- correct!</span></li>
@@ -124,7 +124,8 @@ new Pageview(productId = "p123", time = 150000000L)
 				</section>
 				<section>
 					<h2>Pageview memory layout</h2>
-					todo: draw diagram
+					<img src="images/pageview-structure.png" class="plain" height="450px"/>
+					<p>todo: fix String hash</p>
 				</section>
 				<section>
 					<h2>Wait, 70% overhead?</h2>
@@ -180,11 +181,11 @@ int main() {
 				</section>
 				<section>
 					<h2>Native memory layout</h2>
-					todo: draw diagram
+					<img src="images/pageview-native.png" class="plain" height="550px"/>
 				</section>
 				<section>
-					<h2>Managed vs native</h2>
-					<p>todo: two doagrams side-by-side</p>
+					<h2>Native vectors</h2>
+					<p>todo: vector diagram</p>
 				</section>
 				<section>
 					<h2>Perks of native memory layout</h2>
@@ -192,11 +193,13 @@ int main() {
 						<li>Almost no RAM overhead</li>
 						<li>Better CPU cache usage</li>
 					</ul>
-					<p>Can it be achieved within JVM?</p>
+					<p class="fragment">Can it be achieved within JVM?</p>
+					<img class="fragment" src="images/bs.jpg" height="300px"/>
 				</section>
 				<section>
 					<h2>Yes, but</h2>
 					<ul>
+						<li>Project valhalla<span class="fragment">: far future</span></li>
 						<li>ChronicleMap<span class="fragment">: complex API, ton of boilerplate</span></li>
 						<li>MapDB<span class="fragment">: map only, persistent</span></li>
 						<li>scala-offheap<span class="fragment">: dead</span></li>
@@ -225,7 +228,6 @@ int main() {
 						<li>basic type encoders/decoders</li>
 						<li>shapeless magic for case classes</li>
 					</ul>
-					<p>todo: diagram of Pageview layout with scala-packed</p>
 				</section>
 				<section>
 					<h2>How it works: case classes</h2>
@@ -235,6 +237,32 @@ int main() {
 						<li>Iterate over HList</li>
 						<li>Typeclasses!</li>
 					</ul>
+					<p><img class="fragment" src="images/doom_levels.png"/></p>
+				</section>
+				<section>
+					<h2>Typeclass derivation levels of doom</h2>
+					<pre><code data-noescape>
+<span class="fragment">case class Easy(id: String, ts: Long)</span>
+
+<span class="fragment">case class Regular(id: String, easy: Easy)</span>
+
+<span class="fragment">case class Hardcore(id: String, other: List[Hardcore])</span>
+
+<span class="fragment">sealed trait Nightmare
+case class Leaf(value: String) extends Nightmare
+case class Node(left: Nightmare, right: Nightmare) extends Nightmare</span>
+					</code></pre>
+				</section>
+				<section>
+					<h2>Shapeless LabelledTypeClass</h2>
+					<p>Implement typeclasses for:</p>
+					<ul>
+						<li>HNil</li>
+						<li>H, T &lt;: HList</li>
+						<li>CNil</li>
+						<li>L, R &lt;: Coproduct</li>
+					</ul>
+					<p><img src="images/magic.gif"/></p>
 				</section>
 				<section>
 					<h2>How it works: lists</h2>
@@ -256,25 +284,16 @@ int main() {
 						<li>Immutable: in-place element update is hard</li>
 						<li>List/Map semantics is different</li>
 						<li>Not all scala.collection.* methods are optimized</li>
+						<li>Boxing for primitive values</li>
 					</ul>
 				</section>
 				<section>
-					<h2>Benchmark: Maps/RAM</h2>
+					<h2>Benchmark: List/RAM, ints</h2>
+					<img src="images/packed_list_memory.png"/>
 				</section>
 				<section>
-					<h2>Benchmark: Maps/CPU</h2>
-					<pre><code>
-Benchmark            mapType  Mode  Cnt       Score      Error  Units
-build1000                Map  avgt  100  174976.058 ± 4784.830  ns/op
-build1000          PackedMap  avgt  100  324695.548 ± 3652.811  ns/op
-lookupExisting           Map  avgt  100      48.297 ±    0.267  ns/op
-lookupExisting     PackedMap  avgt  100     128.332 ±    1.251  ns/op
-lookupNonExisting        Map  avgt  100      40.084 ±    0.808  ns/op
-lookupNonExisting  PackedMap  avgt  100      25.322 ±    0.751  ns/op
-					</code></pre>
-				</section>
-				<section>
-					<h2>Benchmark: List/RAM</h2>
+					<h2>Benchmark: List/RAM, pageviews</h2>
+					<img src="images/packed_pageview.png"/>
 				</section>
 				<section>
 					<h2>Benchmark: List/CPU</h2>
@@ -289,6 +308,18 @@ foreach  PackedList  avgt  100   9579.002 ±  80.827  ns/op
 					</code></pre>
 				</section>
 				<section>
+					<h2>Benchmark: Maps/CPU</h2>
+					<pre><code>
+Benchmark            mapType  Mode  Cnt       Score      Error  Units
+build1000                Map  avgt  100  174976.058 ± 4784.830  ns/op
+build1000          PackedMap  avgt  100  324695.548 ± 3652.811  ns/op
+lookupExisting           Map  avgt  100      48.297 ±    0.267  ns/op
+lookupExisting     PackedMap  avgt  100     128.332 ±    1.251  ns/op
+lookupNonExisting        Map  avgt  100      40.084 ±    0.808  ns/op
+lookupNonExisting  PackedMap  avgt  100      25.322 ±    0.751  ns/op
+					</code></pre>
+				</section>
+				<section>
 					<h2>scala-packed and Findify</h2>
 					<ul>
 						<li>Using in production: not yet</li>
@@ -299,10 +330,9 @@ foreach  PackedList  avgt  100   9579.002 ±  80.827  ns/op
 				<section>
 					<h2>Links</h2>
 					<ul>
-						<li>scala-packed</li>
-						<li>jol</li>
-						<li>jamm</li>
-						<li>slides</li>
+						<li>scala-packed: <a href="https://github.com/findify/scala-packed">https://github.com/findify/scala-packed</a></li>
+						<li>jol: <a href="http://openjdk.java.net/projects/code-tools/jol/">http://openjdk.java.net/projects/code-tools/jol/</a></li>
+						<li>jamm: <a href="https://github.com/jbellis/jamm">https://github.com/jbellis/jamm</a></li>
 					</ul>
 				</section>
 				<section>
