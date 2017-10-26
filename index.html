@@ -80,15 +80,15 @@
 					<h2>Where is my RAM?</h2>
 					<p>Let's model everything with case classes!</p> <!-- who are we meme -->
 					<pre><code>
-case class Pageview(productId: String, time: Long)
+case class Pageview(id: String, time: Long)
 					</code></pre>
 				</section>
 				<section>
 					<h2>Quiz</h2>
 					<pre><code>
-case class Pageview(productId: String, time: Long)
+case class Pageview(id: String, time: Long)
 
-Pageview(productId = "p123", time = 0L)
+Pageview(id = "p123", time = 0L)
 					</code></pre>
 					<p>How much heap does Pageview use?</p>
 					<ul class="fragment">
@@ -127,10 +127,10 @@ new Pageview(productId = "p123", time = 150000000L)
 					<img src="images/pageview-structure.png" class="plain" height="450px"/>
 					<p>todo: fix String hash</p>
 				</section>
-				<section>
-					<h2>Wait, 70% overhead?</h2>
-					<p class="fragment">20 bytes of data / 64 bytes of RAM</p>
-					<img src="images/sad_kitten.jpg" class="fragment" height="300px"/>
+				<section data-background-image="images/sad_kitten.jpg">
+					<h2 style="color: #ffffff;">70% overhead</h2>
+					<!--p class="fragment">20 bytes of data / 64 bytes of RAM</p-->
+					<!--img src="images/sad_kitten.jpg" class="fragment" height="300px"/-->
 				</section>
 				<section>
 					<h2>Collections of case classes</h2>
@@ -146,9 +146,9 @@ new Pageview(productId = "p123", time = 150000000L)
 				<section>
 					<h2>million pageviews</h2>
 					<pre><code>
-val pageviews = List.fill(1000)(_ =>
+val pageviews = List.fill(1000000)(_ =>
   Pageview(
-    productId = Random.nextString(4),
+    id = Random.nextString(4),
     time = Random.nextLong()
   )
 )
@@ -163,9 +163,9 @@ val pageviews = List.fill(1000)(_ =>
 					<h2>collection of primitives</h2>
 					<img src="images/million_ints.png" class="fragment"/>
 				</section>
-				<section>
-					<h2>Welcome to the JVM world</h2>
-					<img src="images/fire.gif"/>
+				<section data-background-image="images/fire.gif">
+					<h1 style="color: white;">Welcome to the JVM world</h1>
+					<br/><br/><br/><br/><br/><br/><br/>
 				</section>
 				<section>
 					<h2>Going native</h2>
@@ -203,6 +203,7 @@ int main() {
 						<li>ChronicleMap<span class="fragment">: complex API, ton of boilerplate</span></li>
 						<li>MapDB<span class="fragment">: map only, persistent</span></li>
 						<li>scala-offheap<span class="fragment">: dead</span></li>
+						<li>FlatBuffers<span class="fragment">: code generation</span></li>
 					</ul>
 					<p><img src="images/sad_boy.jpg" height="300px" class="plain fragment"/></p>
 				</section>
@@ -223,7 +224,7 @@ int main() {
 					<p>demo: packing pageviews</p>
 				</section>
 				<section>
-					<h2>How it works</h2>
+					<h2>How it works: serde</h2>
 					<ul>
 						<li>basic type encoders/decoders</li>
 						<li>shapeless magic for case classes</li>

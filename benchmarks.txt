@@ -14,3 +14,12 @@ filter   PackedList  avgt  100  14877.129 ± 470.324  ns/op
 foreach      Vector  avgt  100   3462.084 ±  79.947  ns/op
 foreach        List  avgt  100   3061.652 ±  30.891  ns/op
 foreach  PackedList  avgt  100   9579.002 ±  80.827  ns/op
+
+images to draw:
+* case classes to the rescue!
+* pageview memory layout
+* List[Pageview] memory layout
+* native memory layout
+* vector<pageview> memory layout
+* list layout with scala-packed
+* map layout with scala-packed
