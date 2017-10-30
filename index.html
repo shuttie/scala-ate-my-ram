@@ -36,6 +36,7 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
+					<img src="images/main.png" class="plain" height="300px" style="margin: 0px;"/>
 					<h1>case classes</h1>
 					<h2>ate my RAM</h2>
 					<p><small>Grebennikov Roman / <a href="http://findify.io">findify.io</a> / <a href="http://twitter.com/public_void_grv">@public_void_grv</a></small></p>
@@ -54,9 +55,11 @@
 				</section>
 				<section>
 					<h2>Product recommendations</h2>
+					<p><img src="images/recs.png" height="200px" style="margin: 0px 0px;"/></p>
 					<ul>
-						<li>Large-scale, online</li>
-						<li class="fragment highlight-red">Keep hot dataset in RAM</li>
+						<li class="fragment">Large-scale, online</li>
+						<li class="fragment">Personalized</li>
+						<li class="fragment">Keep hot dataset in RAM</li>
 					</ul>
 				</section>
 				<section>
@@ -77,8 +80,7 @@
 				</section>
 				<section>
 					<!-- when you know scala, everything is looking like case class -->
-					<h2>Where is my RAM?</h2>
-					<p>Let's model everything with case classes!</p> <!-- who are we meme -->
+					<img src="images/case-classes.png" class="plain" height="450px"/>
 					<pre><code>
 case class Pageview(id: String, time: Long)
 					</code></pre>
@@ -106,6 +108,10 @@ Pageview(id = "p123", time = 0L)
 					<small>jol: live!</small>
 				</section>
 				<section>
+					<h2>Pageview memory layout</h2>
+					<img src="images/pageview-structure2.png" class="plain" height="500px"/>
+				</section>
+				<section>
 					<h2>Case class memory footprint</h2>
 					<!--pre><code>
 new Pageview(productId = "p123", time = 150000000L)
@@ -122,11 +128,6 @@ new Pageview(productId = "p123", time = 150000000L)
 					</table>
 					<p></p>
 				</section>
-				<section>
-					<h2>Pageview memory layout</h2>
-					<img src="images/pageview-structure.png" class="plain" height="450px"/>
-					<p>todo: fix String hash</p>
-				</section>
 				<section data-background-image="images/sad_kitten.jpg">
 					<h2 style="color: #ffffff;">70% overhead</h2>
 					<!--p class="fragment">20 bytes of data / 64 bytes of RAM</p-->
@@ -142,6 +143,9 @@ new Pageview(productId = "p123", time = 150000000L)
 					<li>reference to head</li>
 					<li>reference to next node</li>
 				</ul>
+				</section>
+				<section>
+					<img src="images/list-of-pageviews.png" class="plain"/>
 				</section>
 				<section>
 					<h2>million pageviews</h2>
@@ -181,11 +185,11 @@ int main() {
 				</section>
 				<section>
 					<h2>Native memory layout</h2>
-					<img src="images/pageview-native.png" class="plain" height="550px"/>
+					<img src="images/pageview-native2.png" class="plain" height="600px"/>
 				</section>
 				<section>
 					<h2>Native vectors</h2>
-					<p>todo: vector diagram</p>
+					<img src="images/native-vector.png" class="plain" height="600px"/>
 				</section>
 				<section>
 					<h2>Perks of native memory layout</h2>
@@ -208,11 +212,12 @@ int main() {
 					<p><img src="images/sad_boy.jpg" height="300px" class="plain fragment"/></p>
 				</section>
 				<section>
-					<h2>What if</h2>
+					<h2>What if?</h2>
+					<p><img src="images/what-if.png" height="200px" class="plain"/></p>
 					<ul>
-						<li>API: like scala collections</li>
-						<li>No boilerplate</li>
-						<li>Acceptable overhead</li>
+						<li class="fragment">API: like scala collections</li>
+						<li class="fragment">No boilerplate</li>
+						<li class="fragment">Acceptable overhead</li>
 					</ul>
 				</section>
 				<section>
@@ -223,20 +228,23 @@ int main() {
 					<h2>Scala-packed</h2>
 					<p>demo: packing pageviews</p>
 				</section>
+				<section data-background-image="images/scala-is-magic.png">
+					<!--img src="images/scala-is-magic.png" class="plain" height="600px"/-->
+				</section>
 				<section>
 					<h2>How it works: serde</h2>
 					<ul>
-						<li>basic type encoders/decoders</li>
-						<li>shapeless magic for case classes</li>
+						<li class="fragment">basic type encoders/decoders</li>
+						<li class="fragment">shapeless magic for case classes</li>
 					</ul>
 				</section>
 				<section>
 					<h2>How it works: case classes</h2>
 					<ul>
-						<li>case class Pageview(id: String, ts: Long)</li>
-						<li>String :: Long :: HNil</li>
-						<li>Iterate over HList</li>
-						<li>Typeclasses!</li>
+						<li class="fragment">case class Pageview(id: String, ts: Long)</li>
+						<li class="fragment">String :: Long :: HNil</li>
+						<li class="fragment">Iterate over HList</li>
+						<li class="fragment">Typeclasses!</li>
 					</ul>
 					<p><img class="fragment" src="images/doom_levels.png"/></p>
 				</section>
@@ -256,44 +264,60 @@ case class Node(left: Nightmare, right: Nightmare) extends Nightmare</span>
 				</section>
 				<section>
 					<h2>Shapeless LabelledTypeClass</h2>
-					<p>Implement typeclasses for:</p>
+					<p class="fragment">Implement typeclasses for:</p>
 					<ul>
-						<li>HNil</li>
-						<li>H, T &lt;: HList</li>
-						<li>CNil</li>
-						<li>L, R &lt;: Coproduct</li>
+						<li class="fragment">HNil</li>
+						<li class="fragment">H, T &lt;: HList</li>
+						<li class="fragment">CNil</li>
+						<li class="fragment">L, R &lt;: Coproduct</li>
 					</ul>
-					<p><img src="images/magic.gif"/></p>
+					<p><img  class="fragment" src="images/magic.gif"/></p>
+				</section>
+				<section>
+					<h2>Typeclass derivation 101</h2>
+					<small>demo: typeclasses!</small>
+				</section>
+				<section>
+					<h2>Integrating with collections</h2>
+					<ul>
+						<li class="fragment">Builder for PackedList</li>
+						<li class="fragment">CanBuildFrom</li>
+						<li class="fragment"></li>
+					</ul>
 				</section>
 				<section>
 					<h2>How it works: lists</h2>
 					<ul>
-						<li>Allocate a block of Array[Byte]</li>
-						<li>Dump serialized Pageview data</li>
-						<li>Expand buffer as needed</li>
-						<li>Works well* with primitives</li>
+						<li class="fragment">Allocate a block of Array[Byte]</li>
+						<li class="fragment">Dump serialized Pageview data</li>
+						<li class="fragment">Expand buffer as needed</li>
+						<li class="fragment">Works well* with primitives</li>
 					</ul>
-					<p>todo: diagram of list layout with scala-packed</p>
+					<img src="images/packedlist.png" class="plain fragment" height="400px"/>
+				</section>
+				<section>
+					<h2>List[Int]</h2>
+					<small>demo: list of ints</small>
 				</section>
 				<section>
 					<h2>Maps</h2>
-					<p>todo: diagram of map layout with scala-packed</p>
+					<img src="images/packed-map.png" class="plain" height="550px"/>
 				</section>
 				<section>
 					<h2>Packed* limitations</h2>
 					<ul>
-						<li>Immutable: in-place element update is hard</li>
-						<li>List/Map semantics is different</li>
-						<li>Not all scala.collection.* methods are optimized</li>
-						<li>Boxing for primitive values</li>
+						<li class="fragment">Immutable: in-place element update is hard</li>
+						<li class="fragment">List/Map semantics is different</li>
+						<li class="fragment">Not all scala.collection.* methods are optimized</li>
+						<li class="fragment">Boxing for primitive values</li>
 					</ul>
 				</section>
 				<section>
-					<h2>Benchmark: List/RAM, ints</h2>
+					<h2>Benchmark: List[Int], RAM</h2>
 					<img src="images/packed_list_memory.png"/>
 				</section>
 				<section>
-					<h2>Benchmark: List/RAM, pageviews</h2>
+					<h2>Benchmark: List[Pageview], RAM</h2>
 					<img src="images/packed_pageview.png"/>
 				</section>
 				<section>
@@ -323,17 +347,17 @@ lookupNonExisting  PackedMap  avgt  100      25.322 ±    0.751  ns/op
 				<section>
 					<h2>scala-packed and Findify</h2>
 					<ul>
-						<li>Using in production: not yet</li>
-						<li>Bugs: kek</li>
-						<li>Shapeless = <img src="images/heart.png" class="plain" style="margin: -10px 0px;" height="50px"/></li>
+						<li class="fragment">Using in production: not yet</li>
+						<li class="fragment">Bugs: kek</li>
+						<li class="fragment">Shapeless = <img src="images/heart.png" class="plain" style="margin: -10px 0px;" height="50px"/></li>
 					</ul>
 				</section>
 				<section>
 					<h2>Links</h2>
 					<ul>
-						<li>scala-packed: <a href="https://github.com/findify/scala-packed">https://github.com/findify/scala-packed</a></li>
-						<li>jol: <a href="http://openjdk.java.net/projects/code-tools/jol/">http://openjdk.java.net/projects/code-tools/jol/</a></li>
-						<li>jamm: <a href="https://github.com/jbellis/jamm">https://github.com/jbellis/jamm</a></li>
+						<li class="fragment">scala-packed: <a href="https://github.com/findify/scala-packed">https://github.com/findify/scala-packed</a></li>
+						<li class="fragment">jol: <a href="http://openjdk.java.net/projects/code-tools/jol/">http://openjdk.java.net/projects/code-tools/jol/</a></li>
+						<li class="fragment">jamm: <a href="https://github.com/jbellis/jamm">https://github.com/jbellis/jamm</a></li>
 					</ul>
 				</section>
 				<section>
